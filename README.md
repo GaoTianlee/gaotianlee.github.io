@@ -7,7 +7,7 @@ GitHub Pages 用户站点，仓库：`GaoTianlee/gaotianlee.github.io`。
 ## 目录
 
 - `src/`：React + TypeScript 源码。
-- `public/`：图片、下载附件和三张政治研读项目预览图。
+- `public/`：图片、下载附件和四张政治研读项目预览图。
 - `docs/`：已构建的静态网站，GitHub Pages 发布目录。
 - `scripts/prepare-pages.mjs`：生成五个子页面入口、404 页面和 `.nojekyll`。
 

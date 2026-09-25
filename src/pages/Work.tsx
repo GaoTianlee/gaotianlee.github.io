@@ -89,6 +89,8 @@ interface FSNode {
   /** 右下角下载标识：点击下载该文件 */
   download?: string
   /** 在线阅览完整 Markdown 文档 */
+  previewWidth?: number
+  previewHeight?: number
   presentation?: 'website-preview'
   politicsPreviewsVersion?: number
   mdUrl?: string
@@ -100,11 +102,12 @@ const POLITICS_PROJECTS: FSNode[] = [
   { id: 'politics-history', name: '建国后党史', type: 'file', presentation: 'website-preview', img: '/files/politics/history.jpg', url: 'https://cpchistory.gtl-huyidan.workers.dev/' },
   { id: 'politics-state', name: '权力体系架构', type: 'file', presentation: 'website-preview', img: '/files/politics/state.jpg', url: 'https://chinastates.gtl-huyidan.workers.dev/' },
   { id: 'politics-center', name: '百年中枢', type: 'file', presentation: 'website-preview', img: '/files/politics/center.jpg', url: 'https://cpcpolitburo.gtl-huyidan.workers.dev/' },
+  { id: 'politics-ideology', name: '意识形态', type: 'file', presentation: 'website-preview', img: '/files/politics/ideology.png', previewWidth: 2880, previewHeight: 1530, url: 'https://politicalthought.gtl-huyidan.workers.dev/' },
 ]
 
 const SEED_TREE: FSNode = {
   id: 'root',
-  politicsPreviewsVersion: 1,
+  politicsPreviewsVersion: 2,
   name: '作品集',
   type: 'folder',
   children: [
@@ -160,14 +163,15 @@ function loadTree(): FSNode {
     if (raw) {
       const parsed = JSON.parse(raw) as FSNode
       if (parsed && parsed.type === 'folder') {
-        if (!parsed.politicsPreviewsVersion) {
+        if ((parsed.politicsPreviewsVersion ?? 0) < 2) {
           const migrated = updateAt(parsed, ['ext-scan', 'ext-politics'], (folder) => ({
             ...folder,
             children: [...(folder.children ?? []), ...POLITICS_PROJECTS.filter(
-              (project) => !(folder.children ?? []).some((child) => child.id === project.id),
+              (project) => ((parsed.politicsPreviewsVersion ?? 0) < 1 || project.id === 'politics-ideology')
+                && !(folder.children ?? []).some((child) => child.id === project.id),
             )],
           }))
-          return { ...migrated, politicsPreviewsVersion: 1 }
+          return { ...migrated, politicsPreviewsVersion: 2 }
         }
         return parsed
       }
@@ -885,7 +889,7 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
                       <a href={node.url} target="_blank" rel="noopener noreferrer"
                         aria-label={`打开${node.name}网站`}
                         className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-blue">
-                        <img src={node.img} alt={`${node.name}网站预览`} width={2412} height={1280}
+                        <img src={node.img} alt={`${node.name}网站预览`} width={node.previewWidth ?? 2412} height={node.previewHeight ?? 1280}
                           loading="lazy" className="block h-auto w-full" />
                       </a>
                       <figcaption className="mt-4 min-w-0">
