@@ -1,0 +1,363 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Design tokens — ivory white minimalist warm theme (redesign v2) */
+    --bg-page: #faf8f2;
+    --bg-card: #ffffff;
+    --bg-card-soft: #f3f0e8;
+    --ink-primary: #1b1915;
+    --ink-secondary: #6e675b;
+    --ink-muted: #a6a094;
+    --accent: #8c7851;
+    --accent-deep: #2e2a22;
+    --accent-soft: #efeae0;
+    --tag-bg: #f1ede3;
+    --gold: #a58754;
+    --line: #e6e0d2;
+    --line-strong: #d6cfbd;
+    --overlay-scrim: rgba(27, 25, 21, 0.55);
+    --banner-overlay: linear-gradient(
+      90deg,
+      rgba(250, 248, 242, 0.80) 0%,
+      rgba(250, 248, 242, 0.55) 45%,
+      rgba(250, 248, 242, 0.10) 100%
+    );
+
+    /* shadcn compatibility variables (HSL triples) */
+    --background: 40 43% 96%;
+    --foreground: 36 11% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 36 11% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 36 11% 9%;
+    --primary: 39 21% 43%;
+    --primary-foreground: 40 43% 97%;
+    --secondary: 42 30% 93%;
+    --secondary-foreground: 36 11% 9%;
+    --muted: 42 30% 93%;
+    --muted-foreground: 36 9% 40%;
+    /* NOTE: --accent hex token above is the single source of truth;
+       shadcn `accent` color maps to it via tailwind.config (no HSL duplicate). */
+    --accent-foreground: 40 43% 97%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 26% 86%;
+    --input: 40 26% 86%;
+    --ring: 39 21% 43%;
+    --radius: 0.375rem;
+    --sidebar-background: 42 30% 93%;
+    --sidebar-foreground: 36 11% 9%;
+    --sidebar-primary: 39 21% 43%;
+    --sidebar-primary-foreground: 40 43% 97%;
+    --sidebar-accent: 42 30% 93%;
+    --sidebar-accent-foreground: 36 11% 9%;
+    --sidebar-border: 40 26% 86%;
+    --sidebar-ring: 39 21% 43%;
+  }
+
+  [data-theme='dark'] {
+    --bg-page: #17150f;
+    --bg-card: #201d16;
+    --bg-card-soft: #28241b;
+    --ink-primary: #ece6d8;
+    --ink-secondary: #a79e8e;
+    --ink-muted: #6e675a;
+    --accent: #c6aa77;
+    --accent-deep: #ece6d8;
+    --accent-soft: #2c2820;
+    --tag-bg: #2a2620;
+    --gold: #c6aa77;
+    --line: #332e24;
+    --line-strong: #453f31;
+    --overlay-scrim: rgba(0, 0, 0, 0.65);
+    --banner-overlay: linear-gradient(
+      90deg,
+      rgba(23, 21, 15, 0.86) 0%,
+      rgba(23, 21, 15, 0.60) 45%,
+      rgba(23, 21, 15, 0.18) 100%
+    );
+
+    --background: 42 15% 7%;
+    --foreground: 42 30% 89%;
+    --card: 38 15% 11%;
+    --card-foreground: 42 30% 89%;
+    --popover: 38 15% 11%;
+    --popover-foreground: 42 30% 89%;
+    --primary: 38 39% 62%;
+    --primary-foreground: 42 15% 8%;
+    --secondary: 36 13% 14%;
+    --secondary-foreground: 42 30% 89%;
+    --muted: 36 13% 14%;
+    --muted-foreground: 38 11% 59%;
+    --accent-foreground: 42 15% 8%;
+    --border: 38 14% 17%;
+    --input: 38 14% 17%;
+    --ring: 38 39% 62%;
+    --sidebar-background: 38 15% 11%;
+    --sidebar-foreground: 42 30% 89%;
+    --sidebar-primary: 38 39% 62%;
+    --sidebar-primary-foreground: 42 15% 8%;
+    --sidebar-accent: 36 13% 14%;
+    --sidebar-accent-foreground: 42 30% 89%;
+    --sidebar-border: 38 14% 17%;
+    --sidebar-ring: 38 39% 62%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--bg-page);
+    color: var(--ink-primary);
+    font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  /* Dark mode: slightly dim photographic imagery (opt out via .no-dim / .qr-img) */
+  [data-theme='dark'] img:not(.no-dim):not(.qr-img) {
+    filter: brightness(0.92);
+  }
+}
+
+@layer components {
+  /* Signature micro-interaction: 1px underline slides in from the left */
+  .underline-slide {
+    position: relative;
+  }
+  .underline-slide::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    height: 1px;
+    width: 100%;
+    background-color: var(--ink-primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .underline-slide:hover::after,
+  .underline-slide[data-active='true']::after {
+    transform: scaleX(1);
+  }
+
+  /* Mono index number: muted → accent */
+  .mono-num {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    color: var(--ink-muted);
+    transition: color 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  a:hover .mono-num,
+  button:hover .mono-num,
+  .mono-num[data-active='true'] {
+    color: var(--accent);
+  }
+
+  /* Global button system (no pill, no shadow) */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--accent-deep);
+    color: var(--bg-page);
+    border-radius: 4px;
+    padding: 11px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .btn-primary:hover {
+    background-color: var(--ink-primary);
+  }
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: transparent;
+    color: var(--ink-primary);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    padding: 11px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .btn-outline:hover {
+    border-color: var(--ink-primary);
+  }
+}
+
+@layer utilities {
+  .font-serif-sc {
+    font-family: 'Noto Serif SC', 'Fraunces', Georgia, serif;
+  }
+  .font-display {
+    font-family: 'Fraunces', 'Noto Serif SC', Georgia, serif;
+  }
+  .font-mono-x {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  /* Compat aliases — handwriting/serif-italic retired, mapped to the mono meta layer */
+  .font-hand {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  .font-serif-italic {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-style: normal;
+  }
+  .card-base {
+    background-color: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: none;
+  }
+  .card-hover {
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .card-hover:hover {
+    border-color: var(--line-strong);
+  }
+  .text-ink-primary {
+    color: var(--ink-primary);
+  }
+  .text-ink-secondary {
+    color: var(--ink-secondary);
+  }
+  .text-ink-muted {
+    color: var(--ink-muted);
+  }
+  .text-accent-deep {
+    color: var(--accent-deep);
+  }
+
+  .text-accent-blue {
+    color: var(--accent);
+  }
+  .bg-page {
+    background-color: var(--bg-page);
+  }
+  .bg-card {
+    background-color: var(--bg-card);
+  }
+  .bg-bg-page {
+    background-color: var(--bg-page);
+  }
+
+  .bg-card-soft {
+    background-color: var(--bg-card-soft);
+  }
+  .bg-accent-blue {
+    background-color: var(--accent);
+  }
+  .bg-accent-deep {
+    background-color: var(--accent-deep);
+  }
+  .bg-accent-soft {
+    background-color: var(--accent-soft);
+  }
+  .bg-tag {
+    background-color: var(--tag-bg);
+  }
+  .border-line {
+    border-color: var(--line);
+  }
+  .border-line-strong {
+    border-color: var(--line-strong);
+  }
+  .bg-overlay-scrim {
+    background-color: var(--overlay-scrim);
+  }
+}
+
+/* -------- online markdown doc (portfolio README preview) -------- */
+.md-doc {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ink-secondary);
+  max-width: 760px;
+  margin: 0 auto;
+}
+.md-doc h1, .md-doc h2, .md-doc h3 {
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  color: var(--ink-primary);
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 1.4em 0 0.6em;
+}
+.md-doc h1 { font-size: 21px; margin-top: 0; }
+.md-doc h2 {
+  font-size: 17px;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--line);
+}
+.md-doc h3 { font-size: 15px; }
+.md-doc p { margin: 0.7em 0; }
+.md-doc img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  margin: 0.9em auto;
+}
+.md-doc p[align="center"] img {
+  /* README 徽章小图标：内联小尺寸，不放大 */
+  display: inline-block;
+  width: auto;
+  height: 20px;
+  max-width: none;
+  border: none;
+  border-radius: 3px;
+  margin: 0 3px;
+  vertical-align: middle;
+}
+.md-doc p[align="center"] img:first-child:last-child {
+  /* 独占一行的图（如封面横幅）保持大图 */
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.9em auto;
+}
+.md-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.9em 0;
+  font-size: 12.5px;
+}
+.md-doc th, .md-doc td {
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  text-align: left;
+}
+.md-doc th { background: var(--bg-card-soft); color: var(--ink-primary); font-weight: 600; }
+.md-doc a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.md-doc code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+  background: var(--bg-card-soft);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.md-doc pre code { display: block; padding: 12px 14px; overflow-x: auto; }
+.md-doc ul, .md-doc ol { padding-left: 1.4em; margin: 0.6em 0; }
+.md-doc li { margin: 0.25em 0; }
+.md-doc blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 2px 0 2px 14px;
+  margin: 0.8em 0;
+  color: var(--ink-secondary);
+}
+.md-doc hr { border: none; border-top: 1px solid var(--line); margin: 1.2em 0; }
+.md-doc p[align="center"], .md-doc h1[align="center"] { text-align: center; }
