@@ -2,6 +2,10 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowUpRight,
+  Globe2,
+  Code2,
+  Server,
+  Workflow,
   Heart,
   MessageCircle,
   Truck,
@@ -28,7 +32,8 @@ interface ShopItem {
   img: string
   price: number
   originalPrice?: number
-  wantCount: number
+  wantCount?: number
+  serviceLabel?: string
   badges: string[]
   desc: string
   specs: { k: string; v: string }[]
@@ -112,9 +117,54 @@ const SHOPS: ShopItem[] = [
     ],
     siteUrl: 'https://bananado.kimi.site/settings',
   },
+  {
+    id: 'web-api', name: '筑站', serviceLabel: '网站制作及其数据接口',
+    title: '网站制作及其数据接口｜个人站 / 产品站定制 + API 数据服务',
+    category: '建站', categoryEn: 'WEB & API', quote: '从一页作品，到一套接口。',
+    spec: '网站定制 · 数据接口', img: '', logoArt: <DigitalServiceArt kind="web" />,
+    price: 99, originalPrice: 299, badges: ['在线产品', '已上线'], badge: '主推',
+    siteUrl: 'https://webhtml.ok.kimi.link',
+    desc: '网站制作与数据接口一体化服务：个人博客、产品落地页、数据看板定制开发，配套结构化数据 API 输出。点击进入示例网站，查看产品形态与交付流程。',
+    specs: [
+      { k: '主要业务', v: '网站定制开发 · 数据接口服务' },
+      { k: '交付内容', v: '整站源码 + 部署上线 + API 文档' },
+      { k: '交付周期', v: '3–7 天，视需求复杂度' },
+      { k: '计价方式', v: '¥99/页起，整站与接口另议' },
+    ],
+  },
+  {
+    id: 'overseas-infra', name: '云舵', serviceLabel: '海外数字基建',
+    title: '海外数字基建｜域名 / 服务器 / 部署运维 / 合规架构',
+    category: '基建', categoryEn: 'INFRA', quote: '让服务稳定地立在海那边。',
+    spec: '域名 · 服务器 · 部署运维', img: '', logoArt: <DigitalServiceArt kind="infra" />,
+    price: 299, originalPrice: 599, badges: ['服务定制', '预约制'],
+    desc: '海外数字基建一站式服务：域名注册与解析、海外服务器选型、站点部署与持续运维、合规架构建议。适合出海产品与独立站的从 0 到 1 搭建，网站入口待补充。',
+    specs: [
+      { k: '主要业务', v: '域名 · 服务器 · 部署运维 · 合规架构' },
+      { k: '交付内容', v: '基建方案 + 部署实施 + 运维手册' },
+      { k: '交付周期', v: '5–10 天，视架构复杂度' },
+      { k: '计价方式', v: '¥299/项起，年度运维另议' },
+      { k: '网站入口', v: '待补充' },
+    ],
+  },
 ]
 
 /* --------------------------- brand logo art ---------------------------- */
+
+function DigitalServiceArt({ kind }: { kind: 'web' | 'infra' }) {
+  const web = kind === 'web'
+  return (
+    <div className="relative flex h-full w-full flex-col justify-between p-[12%]" style={{ backgroundColor: web ? '#E9EDE8' : '#E7EBF0', color: web ? '#3B6553' : '#38556D' }} aria-hidden>
+      <span className="font-mono-x text-[10px] tracking-[0.2em]">{web ? 'WEB / API' : 'GLOBAL / INFRA'}</span>
+      <div className="flex items-center justify-center gap-4">
+        {web ? <Code2 size={82} strokeWidth={1} /> : <Globe2 size={82} strokeWidth={1} />}
+        <span className="h-px w-6 bg-current opacity-40" />
+        {web ? <Workflow size={48} strokeWidth={1} /> : <Server size={48} strokeWidth={1} />}
+      </div>
+      <span className="font-serif-sc text-[22px] tracking-[0.2em]">{web ? '筑站' : '云舵'}</span>
+    </div>
+  )
+}
 
 /** 八卦太极图：阴阳鱼 + 八宫卦象环绕 */
 function BaguaArt() {
@@ -408,7 +458,7 @@ function DetailOverlay({
                       </span>
                     )}
                   </div>
-                  <span className="text-[12px] text-ink-muted">{item.wantCount} 人想要</span>
+                  {item.wantCount !== undefined && <span className="text-[12px] text-ink-muted">{item.wantCount} 人想要</span>}
                 </div>
 
                 {/* badges */}
@@ -615,6 +665,7 @@ function ShopCard({
             className="absolute -bottom-0.5 left-0 h-px w-full origin-left bg-accent-blue"
           />
         </h3>
+        {item.serviceLabel && <p className="mt-1 text-[12.5px] text-ink-primary">{item.serviceLabel}</p>}
         <p className="mt-1.5 line-clamp-1 text-[12.5px] italic leading-[1.7] text-ink-secondary">
           {item.quote}
         </p>

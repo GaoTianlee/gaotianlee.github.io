@@ -82,6 +82,8 @@ interface FSNode {
   img?: string
   /** 置顶标记 */
   pinned?: boolean
+  tags?: string[]
+  businessPreviewsVersion?: number
   /** 在线预览：幻灯片图片列表 */
   slides?: string[]
   /** 在线预览：结构化文档 */
@@ -105,9 +107,114 @@ const POLITICS_PROJECTS: FSNode[] = [
   { id: 'politics-ideology', name: '意识形态', type: 'file', presentation: 'website-preview', img: '/files/politics/ideology.png', previewWidth: 2880, previewHeight: 1530, url: 'https://politicalthought.gtl-huyidan.workers.dev/' },
 ]
 
+const CORP_PROJECTS: FSNode[] = [
+  {
+    "id": "corp-top",
+    "name": "公司顶层设计",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/top.jpg",
+    "previewWidth": 2412,
+    "previewHeight": 1280,
+    "url": "https://top-level-design.ok.kimi.link"
+  },
+  {
+    "id": "corp-strategy",
+    "name": "战略战术",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/strategy.jpg",
+    "previewWidth": 2412,
+    "previewHeight": 1280
+  },
+  {
+    "id": "corp-finance",
+    "name": "财务体系",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/finance.jpg",
+    "previewWidth": 2412,
+    "previewHeight": 1280,
+    "url": "https://ccfinance.kimi.site"
+  },
+  {
+    "id": "corp-operations",
+    "name": "经营体系",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/operations.jpg",
+    "previewWidth": 2412,
+    "previewHeight": 1280,
+    "url": "https://operations.ok.kimi.link"
+  },
+  {
+    "id": "corp-fund",
+    "name": "募资体系",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/fundraising.jpg",
+    "previewWidth": 2412,
+    "previewHeight": 1280,
+    "url": "https://fundraising.ok.kimi.link"
+  },
+  {
+    "id": "corp-invest",
+    "name": "投资体系",
+    "type": "file",
+    "presentation": "website-preview"
+  }
+]
+
+const TO_B_PROJECT: FSNode = {
+  "id": "to-b",
+  "name": "To B项目",
+  "type": "folder",
+  "pinned": true,
+  "tags": [
+    "个人公司向",
+    "个人IP向"
+  ],
+  "children": [
+    {
+      "id": "tob-demand",
+      "name": "需求线",
+      "type": "file",
+      "presentation": "website-preview",
+      "img": "/files/business/demand.png",
+      "previewWidth": 1324,
+      "previewHeight": 680,
+      "url": "https://demandside.ok.kimi.link"
+    },
+    {
+      "id": "tob-supply",
+      "name": "供给线",
+      "type": "file",
+      "presentation": "website-preview",
+      "img": "/files/business/supply.png",
+      "previewWidth": 1305,
+      "previewHeight": 680,
+      "url": "https://supplyside.ok.kimi.link"
+    }
+  ]
+}
+
+const ECONOMY_PROJECTS: FSNode[] = [
+  {
+    "id": "ext-eco-pl",
+    "name": "流动性图谱",
+    "type": "file",
+    "presentation": "website-preview",
+    "img": "/files/business/economy.png",
+    "previewWidth": 2864,
+    "previewHeight": 1536,
+    "url": "https://pl-economy.ok.kimi.link"
+  }
+]
+
 const SEED_TREE: FSNode = {
   id: 'root',
   politicsPreviewsVersion: 2,
+  businessPreviewsVersion: 1,
   name: '作品集',
   type: 'folder',
   children: [
@@ -118,8 +225,9 @@ const SEED_TREE: FSNode = {
       pinned: true,
       introLabel: '经管实务笔记',
       introUrl: 'https://notes.coloros.com/s/1CZuKZZHgzZj_1',
-      children: [],
+      children: CORP_PROJECTS,
     },
+    TO_B_PROJECT,
     {
       id: 'to-c',
       name: '个人公司化运营项目',
@@ -143,7 +251,7 @@ const SEED_TREE: FSNode = {
       type: 'folder',
       children: [
         { id: 'ext-politics', name: '政治研读', type: 'folder', children: POLITICS_PROJECTS },
-        { id: 'ext-economy', name: '经济研读', type: 'folder', children: [] },
+        { id: 'ext-economy', name: '经济研读', type: 'folder', children: ECONOMY_PROJECTS },
         { id: 'ext-tech', name: '技术研读', type: 'folder', children: [] },
         { id: 'ext-society', name: '人口和社会文化倾向', type: 'folder', children: [] },
         { id: 'ext-geo', name: '地缘政治与全球视角', type: 'folder', children: [] },
@@ -155,6 +263,27 @@ const SEED_TREE: FSNode = {
 
 function genId() {
   return `n-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function migrateBusinessTree(tree: FSNode): FSNode {
+  if (tree.businessPreviewsVersion) return tree
+  const appendMissing = (folder: FSNode, additions: FSNode[]): FSNode => ({
+    ...folder,
+    children: [...(folder.children ?? []), ...additions.filter(
+      (addition) => !(folder.children ?? []).some((child) => child.id === addition.id),
+    )],
+  })
+  let result = updateAt(tree, ['corp-ops'], (folder) => appendMissing(folder, CORP_PROJECTS))
+  result = updateAt(result, ['ext-scan', 'ext-economy'], (folder) => appendMissing(folder, ECONOMY_PROJECTS))
+  const children = [...(result.children ?? [])]
+  const existing = children.findIndex((node) => node.id === 'to-b')
+  if (existing >= 0) {
+    children[existing] = { ...appendMissing(children[existing], TO_B_PROJECT.children ?? []), tags: TO_B_PROJECT.tags, pinned: true }
+  } else {
+    const before = children.findIndex((node) => node.id === 'to-c')
+    children.splice(before < 0 ? children.length : before, 0, TO_B_PROJECT)
+  }
+  return { ...result, children, businessPreviewsVersion: 1 }
 }
 
 function loadTree(): FSNode {
@@ -171,9 +300,9 @@ function loadTree(): FSNode {
                 && !(folder.children ?? []).some((child) => child.id === project.id),
             )],
           }))
-          return { ...migrated, politicsPreviewsVersion: 2 }
+          return migrateBusinessTree({ ...migrated, politicsPreviewsVersion: 2 })
         }
-        return parsed
+        return migrateBusinessTree(parsed)
       }
     }
   } catch {
@@ -753,6 +882,36 @@ type ModalState =
   | { kind: 'detail'; node: FSNode }
   | null
 
+function ProjectPreview({ node }: { node: FSNode }) {
+  const visual = node.img ? (
+    <img src={node.img} alt={`${node.name}网站预览`} width={node.previewWidth ?? 2412} height={node.previewHeight ?? 1280}
+      loading="lazy" className="block h-auto w-full" />
+  ) : (
+    <div className="flex aspect-[2412/1280] w-full flex-col justify-between bg-accent-soft p-6 text-ink-muted">
+      <span className="font-mono-x text-[10px] tracking-[0.2em]">INVESTMENT</span>
+      <span className="font-serif-sc text-[24px] text-ink-primary">{node.name}</span>
+      <span className="text-[12px]">内容筹备中</span>
+    </div>
+  )
+  return (
+    <figure className="m-0 min-w-0" data-project-preview={node.id}>
+      {node.url ? (
+        <a href={node.url} target="_blank" rel="noopener noreferrer" aria-label={`打开${node.name}网站`}
+          className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-blue">{visual}</a>
+      ) : visual}
+      <figcaption className="mt-4 min-w-0">
+        <h3 className="font-serif-sc text-[17px] font-semibold text-ink-primary">{node.name}</h3>
+        {node.url ? (
+          <a href={node.url} target="_blank" rel="noopener noreferrer"
+            className="mt-2 flex items-start gap-1.5 text-[12px] leading-relaxed text-accent-blue underline decoration-accent-blue/40 underline-offset-4 hover:decoration-accent-blue">
+            <Link2 size={13} className="mt-0.5 shrink-0" /><span className="min-w-0 break-all">{node.url}</span>
+          </a>
+        ) : <p className="mt-2 text-[12px] text-ink-muted">链接待补充</p>}
+      </figcaption>
+    </figure>
+  )
+}
+
 function Portfolio({ showToast }: { showToast: (m: string) => void }) {
   const [tree, setTree] = useState<FSNode>(() => loadTree())
   const [pathIds, setPathIds] = useState<string[]>([])
@@ -766,6 +925,7 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
   // ensure current path still valid after deletions
   const current = findAt(tree, pathIds)
   const items = current.children ?? []
+  const hasPreviews = items.some((node) => node.presentation === 'website-preview')
 
   const crumbs: FSNode[] = [tree]
   {
@@ -878,35 +1038,22 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
               空文件夹 — 点击右上角新建项目
             </p>
           ) : (
-            <ul className={current.id === 'ext-politics' ? "grid grid-cols-1 gap-x-6 gap-y-9 md:grid-cols-2 lg:grid-cols-3" : "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"}>
+            <ul className={hasPreviews ? "grid grid-cols-1 gap-x-6 gap-y-9 md:grid-cols-2 lg:grid-cols-3" : "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"}>
               {items.map((node) => (
                 <li
                   key={node.id}
-                  className={cn('group relative', node.type === 'file' && node.presentation !== 'website-preview' && current.id !== 'ext-politics' && 'col-span-2 sm:col-span-3 lg:col-span-4')}
+                  data-portfolio-node={node.id}
+                  className={cn('group relative', node.type === 'file' && node.presentation !== 'website-preview' && !hasPreviews && 'col-span-2 sm:col-span-3 lg:col-span-4')}
                 >
+                  {node.pinned && <span data-pinned className="pointer-events-none absolute right-2.5 top-2.5 z-10 rounded bg-accent-blue/10 px-1.5 py-0.5 text-[10px] font-medium text-accent-blue">置顶</span>}
                   {node.presentation === 'website-preview' ? (
-                    <figure className="m-0 min-w-0" data-project-preview={node.id}>
-                      <a href={node.url} target="_blank" rel="noopener noreferrer"
-                        aria-label={`打开${node.name}网站`}
-                        className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-blue">
-                        <img src={node.img} alt={`${node.name}网站预览`} width={node.previewWidth ?? 2412} height={node.previewHeight ?? 1280}
-                          loading="lazy" className="block h-auto w-full" />
-                      </a>
-                      <figcaption className="mt-4 min-w-0">
-                        <h3 className="font-serif-sc text-[17px] font-semibold text-ink-primary">{node.name}</h3>
-                        <a href={node.url} target="_blank" rel="noopener noreferrer"
-                          className="mt-2 flex items-start gap-1.5 text-[12px] leading-relaxed text-accent-blue underline decoration-accent-blue/40 underline-offset-4 hover:decoration-accent-blue">
-                          <Link2 size={13} className="mt-0.5 shrink-0" />
-                          <span className="min-w-0 break-all">{node.url}</span>
-                        </a>
-                      </figcaption>
-                    </figure>
+                    <ProjectPreview node={node} />
                   ) : node.type === 'folder' ? (
                     /* 方格文件夹卡片 */
                     <button
                       type="button"
                       onClick={() => openNode(node)}
-                      className="card-hover flex aspect-square w-full flex-col items-center justify-center gap-2.5 rounded-md border border-line bg-card px-3 text-center"
+                      className="card-hover flex aspect-square w-full flex-col items-center justify-center gap-2.5 rounded-md border border-line bg-card px-3 pb-4 pt-9 text-center"
                     >
                       <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-line bg-accent-soft text-accent-blue">
                         {node.img ? (
@@ -915,14 +1062,10 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
                           <Folder size={20} />
                         )}
                       </span>
-                      {node.pinned && (
-                        <span className="rounded bg-accent-blue/10 px-1.5 py-0.5 text-[10px] font-medium text-accent-blue">
-                          置顶
-                        </span>
-                      )}
                       <span className="font-mono-x line-clamp-2 text-[13px] font-medium leading-snug text-ink-primary">
                         {node.name}
                       </span>
+                      {node.tags && <span className="flex flex-wrap justify-center gap-1">{node.tags.map((tag) => <span key={tag} className="rounded bg-accent-soft px-1.5 py-0.5 text-[10px] text-ink-secondary">{tag}</span>)}</span>}
                       <span className="text-[11.5px] text-ink-muted">
                         {countDescendants(node)} 个子项
                       </span>
@@ -945,11 +1088,6 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-2">
-                          {node.pinned && (
-                            <span className="shrink-0 rounded bg-accent-blue/10 px-1.5 py-0.5 text-[10px] font-medium text-accent-blue">
-                              置顶
-                            </span>
-                          )}
                           <span className="font-mono-x block truncate text-[13.5px] font-medium text-ink-primary">
                             {node.name}
                           </span>
@@ -988,7 +1126,7 @@ function Portfolio({ showToast }: { showToast: (m: string) => void }) {
                     type="button"
                     aria-label={`删除 ${node.name}`}
                     onClick={() => setModal({ kind: 'delete', node })}
-                    className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded text-ink-muted opacity-0 transition-all hover:text-accent-blue group-hover:opacity-100"
+                    className="absolute left-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded text-ink-muted opacity-0 transition-all hover:text-accent-blue group-hover:opacity-100"
                   >
                     <Trash2 size={13} />
                   </button>
